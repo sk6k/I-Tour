@@ -39,15 +39,15 @@ const Tours = (props) => {
 			description: 'Best tour for discover Asia',
 		},
 	];
+
 	return (
 		<section className='tours-page'>
 			<h1>Tours page</h1>
 			<ul>
 				{toursArray.map((tour) => {
-					return <ToursItem key={tour.id} {...tour} />;
+					return <ToursItem key={tour.id} {...tour} {...props} />;
 				})}
 			</ul>
-			{props.children}
 		</section>
 	);
 };
