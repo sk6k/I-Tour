@@ -2,7 +2,7 @@ import { ReactComponent as LogoIcon } from 'assets/image/logo.svg';
 import './Header.scss';
 
 const Header = (props) => {
-	console.log('render', props);
+	// console.log('render', props);
 	return (
 		<header>
 			<LogoIcon id='logo' />
