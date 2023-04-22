@@ -21,7 +21,7 @@ const initialState = {
 };
 
 class ToursForm extends Component {
-	state = [...initialState];
+	state = { ...initialState };
 
 	handleChangeValueInState = ({ target: { name, value } }) => {
 		this.setState({
@@ -75,7 +75,9 @@ class ToursForm extends Component {
 							onChange={this.handleChangeValueInState}>
 							<option value='' disabled></option>
 							{continentOptions.map((el) => (
-								<option value={el}>{el}</option>
+								<option key={el} value={el}>
+									{el}
+								</option>
 							))}
 						</select>
 						<textarea

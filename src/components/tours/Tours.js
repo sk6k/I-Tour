@@ -3,51 +3,49 @@ import React, { Component } from 'react';
 import './Tours.scss';
 import debounce from 'lodash.debounce';
 import ToursForm from 'components/tours-form/ToursForm';
-
-const toursArray = [
-	{
-		id: 1,
-		name: 'Portugalia vibe 123',
-		price: 3000,
-		continent: 'Europe',
-		// description: "Best tour for discover Portugal",
-	},
-	{
-		id: 2,
-		name: 'The breath of Italy',
-		price: 5000,
-		continent: 'Europe',
-		description: 'Best tour for discover Italia',
-	},
-	{
-		id: 3,
-		name: 'Spanish bullfight',
-		price: 1000,
-		continent: 'Europe',
-		// description: "A new experience from watching a bullfight",
-	},
-	{
-		id: 4,
-		name: 'Germany race',
-		price: 15000,
-		continent: 'Europe',
-		description: 'A quick walk on the German autobahns',
-	},
-	{
-		id: 5,
-		name: 'Indian traditions',
-		price: 10000,
-		continent: 'Asia',
-		description: 'Best tour for discover Asia',
-	},
-];
+import { fethTours } from 'api';
+import moment from 'moment/moment';
 
 class Tours extends Component {
 	state = {
 		query: '',
 		visibleModal: false,
-		tours: toursArray,
+		isLoading: false,
+		lastUpdateTime: null,
+		tours: {
+			total_items: 0,
+			items: [],
+		},
 	};
+
+	async componentDidMount() {
+		this.setState({ isLoading: true });
+		const response = await fethTours();
+
+		this.setState({
+			tours: response,
+			isLoading: false,
+		});
+	}
+
+	getSnapshotBeforeUpdate(prevProps, prevState) {
+		const posTop =
+			window.pageYOffset !== undefined
+				? window.pageYOffset
+				: (document.documentElement || document.body.parentNode || document.body).scrollTop;
+		console.log(posTop);
+
+		return { posTop };
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (prevProps.theme !== this.props.theme) {
+			console.log('theme was changed');
+			this.setState({
+				lastUpdateTime: moment().format('HH:mm:ss'),
+			});
+		}
+	}
 
 	handleChangeQuery = ({ target: { value: query } }) => {
 		this.setState({ query });
@@ -64,7 +62,7 @@ class Tours extends Component {
 	};
 
 	render() {
-		const { query, tours, visibleModal } = this.state;
+		const { query, tours, visibleModal, isLoading, lastUpdateTime } = this.state;
 		return (
 			<>
 				<ToursForm
@@ -82,15 +80,20 @@ class Tours extends Component {
 							onChange={debounce(this.handleChangeQuery, 1000)}
 						/>
 						<button onClick={this.handleToggleModal}>Open Modal</button>
+						{lastUpdateTime && <p>Last update: {lastUpdateTime}</p>}
 					</div>
-
-					<ul>
-						{tours
-							.filter((item) => item.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
-							.map((tour) => (
-								<ToursItem key={tour.id} {...tour} {...this.props} />
-							))}
-					</ul>
+					{isLoading ? (
+						<div>loading...</div>
+					) : (
+						<ul>
+							<h6>Total tours: {tours.total_items}</h6>
+							{tours.items
+								.filter((item) => item.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
+								.map((tour) => (
+									<ToursItem key={tour.id} {...tour} {...this.props} />
+								))}
+						</ul>
+					)}
 				</section>
 			</>
 		);
