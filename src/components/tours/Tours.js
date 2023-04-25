@@ -1,9 +1,11 @@
-import ToursItem from '../tours-item';
 import React, { Component } from 'react';
-import './Tours.scss';
+import ToursItem from '../tours-item';
+
 import debounce from 'lodash.debounce';
+
+import './Tours.scss';
 import ToursForm from 'components/tours-form/ToursForm';
-import { fethTours } from 'api';
+import { addTour, deleteTourById, fetchTours } from 'api/tours';
 import moment from 'moment/moment';
 
 class Tours extends Component {
@@ -11,6 +13,7 @@ class Tours extends Component {
 		query: '',
 		visibleModal: false,
 		isLoading: false,
+		isError: false,
 		lastUpdateTime: null,
 		tours: {
 			total_items: 0,
@@ -18,32 +21,33 @@ class Tours extends Component {
 		},
 	};
 
+	async handleFetchTours(query) {
+		try {
+			this.setState({ isLoading: true });
+			const response = await fetchTours(query);
+
+			this.setState({
+				tours: response,
+				isLoading: false,
+			});
+		} catch (err) {
+			this.setState({ isLoading: false, isError: true });
+		}
+	}
+
 	async componentDidMount() {
-		this.setState({ isLoading: true });
-		const response = await fethTours();
-
-		this.setState({
-			tours: response,
-			isLoading: false,
-		});
+		this.handleFetchTours();
 	}
 
-	getSnapshotBeforeUpdate(prevProps, prevState) {
-		const posTop =
-			window.pageYOffset !== undefined
-				? window.pageYOffset
-				: (document.documentElement || document.body.parentNode || document.body).scrollTop;
-		console.log(posTop);
-
-		return { posTop };
-	}
-
-	componentDidUpdate(prevProps, prevState, snapshot) {
+	async componentDidUpdate(prevProps, prevState, snapshot) {
 		if (prevProps.theme !== this.props.theme) {
-			console.log('theme was changed');
 			this.setState({
 				lastUpdateTime: moment().format('HH:mm:ss'),
 			});
+		}
+
+		if (prevState.query !== this.state.query) {
+			this.handleFetchTours(this.state.query);
 		}
 	}
 
@@ -55,14 +59,33 @@ class Tours extends Component {
 		this.setState((state) => ({ visibleModal: !state.visibleModal }));
 	};
 
-	handleAddTours = (tour) => {
-		this.setState((state) => ({
-			tours: [...state.tours, tour],
-		}));
+	handleAddTours = async (tour) => {
+		try {
+			await addTour(tour);
+			console.log('work');
+			const response = await fetchTours();
+			this.setState({
+				tours: response,
+				isLoading: false,
+			});
+		} catch (err) {
+			this.setState({ isError: true });
+		}
+	};
+
+	handleDeleteTours = async (tourId) => {
+		console.log(tourId);
+
+		await deleteTourById(tourId);
+		const response = await fetchTours();
+		this.setState({
+			tours: response,
+			isLoading: false,
+		});
 	};
 
 	render() {
-		const { query, tours, visibleModal, isLoading, lastUpdateTime } = this.state;
+		const { tours, visibleModal, isLoading, isError, lastUpdateTime } = this.state;
 		return (
 			<>
 				<ToursForm
@@ -76,7 +99,6 @@ class Tours extends Component {
 						<input
 							type='text'
 							placeholder='search by name...'
-							// value={query}
 							onChange={debounce(this.handleChangeQuery, 1000)}
 						/>
 						<button onClick={this.handleToggleModal}>Open Modal</button>
@@ -85,14 +107,23 @@ class Tours extends Component {
 					{isLoading ? (
 						<div>loading...</div>
 					) : (
-						<ul>
-							<h6>Total tours: {tours.total_items}</h6>
-							{tours.items
-								.filter((item) => item.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
-								.map((tour) => (
-									<ToursItem key={tour.id} {...tour} {...this.props} />
-								))}
-						</ul>
+						<>
+							{isError ? (
+								<div>Something went wrong</div>
+							) : (
+								<ul>
+									<h6>Total tours: {tours.total_items}</h6>
+									{tours.items.map((tour) => (
+										<ToursItem
+											key={tour.id}
+											onDelete={this.handleDeleteTours}
+											{...tour}
+											{...this.props}
+										/>
+									))}
+								</ul>
+							)}
+						</>
 					)}
 				</section>
 			</>

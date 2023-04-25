@@ -31,12 +31,8 @@ class ToursForm extends Component {
 
 	handleSubmit = (e) => {
 		e.preventDefault();
-		const newTour = {
-			...this.state,
-			id: Math.round(Math.random() * 1000000),
-		};
 
-		this.props.onAddFunc(newTour);
+		this.props.onAddFunc({ ...this.state });
 		alert('New tour was added');
 		this.setState(initialState);
 		this.props.onClose();
