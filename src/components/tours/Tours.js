@@ -6,7 +6,7 @@ import { addTour, deleteTourById, fetchTours } from 'api/tours';
 import { useToggle } from 'hooks/useToggle';
 import './Tours.scss';
 
-const ToursHook = (props) => {
+const Tours = () => {
 	const [modalVisiable, modalOpen, modalClose] = useToggle();
 
 	const [query, setQuery] = useState('');
@@ -72,7 +72,7 @@ const ToursHook = (props) => {
 							<ul>
 								<h6>Total tours: {tours.total_items}</h6>
 								{tours.items.map((tour) => (
-									<ToursItem key={tour.id} onDelete={handleDeleteTours} {...tour} {...props} />
+									<ToursItem key={tour.id} onDelete={handleDeleteTours} {...tour} />
 								))}
 							</ul>
 						)}
@@ -83,4 +83,4 @@ const ToursHook = (props) => {
 	);
 };
 
-export default ToursHook;
+export default Tours;
