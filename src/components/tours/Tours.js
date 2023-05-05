@@ -5,6 +5,7 @@ import debounce from 'lodash.debounce';
 import { addTour, deleteTourById, fetchTours } from 'api/tours';
 import { useToggle } from 'hooks/useToggle';
 import './Tours.scss';
+import { Outlet, useParams } from 'react-router-dom';
 
 const Tours = () => {
 	const [modalVisiable, modalOpen, modalClose] = useToggle();

@@ -3,9 +3,13 @@ import './Tours-item.scss';
 import clsx from 'clsx';
 import { DARK, LIGHT } from 'constants';
 import { useTheme } from 'hooks/useThemeContext';
+import { Link, Outlet, useParams } from 'react-router-dom';
 
 const ToursItem = ({ id, name, price, continent, description, onDelete }) => {
 	const { theme } = useTheme();
+
+	const { tourId } = useParams();
+
 	return (
 		<li
 			className={clsx('tours-item', {
@@ -22,6 +26,9 @@ const ToursItem = ({ id, name, price, continent, description, onDelete }) => {
 				}}>
 				Delete
 			</button>
+			<Link to={`/tours/${id}`}>More</Link>
+
+			{tourId == id && <Outlet />}
 		</li>
 	);
 };
